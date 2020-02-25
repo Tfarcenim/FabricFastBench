@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "tfar.fastbench.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "CraftingInventoryAccessor",
+    "CraftingResultSlotAccessor",
+    "CraftingTableBlockMixin",
+    "CraftingTableContainerAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

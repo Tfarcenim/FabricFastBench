@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "fastbench",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "FastBench",
+  "description": "Optimizations to the vanilla crafting table",
   "authors": [
     "Tfarecnim"
   ],
@@ -18,11 +18,14 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "tfar.example.ExampleMod"
+      "tfar.fastbench.FastBench"
+    ],
+    "client": [
+      "tfar.fastbench.FastBenchClient"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "fastbench.mixins.json"
   ],
 
   "depends": {
