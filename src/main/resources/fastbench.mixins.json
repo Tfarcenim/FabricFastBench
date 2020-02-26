@@ -6,7 +6,8 @@
     "CraftingInventoryAccessor",
     "CraftingResultSlotAccessor",
     "CraftingTableBlockMixin",
-    "CraftingTableContainerAccessor"
+    "CraftingTableContainerAccessor",
+    "PlayerContainerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

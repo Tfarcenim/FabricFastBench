@@ -1,20 +1,23 @@
 package tfar.fastbench;
 
-				import net.minecraft.container.CraftingResultSlot;
-				import net.minecraft.entity.player.PlayerEntity;
-				import net.minecraft.inventory.CraftingInventory;
-				import net.minecraft.inventory.Inventory;
-				import net.minecraft.item.ItemStack;
-				import net.minecraft.util.DefaultedList;
-				import tfar.fastbench.interfaces.CraftingInventoryInterface;
-				import tfar.fastbench.interfaces.CraftingResultSlotInterface;
+import net.minecraft.container.CraftingResultSlot;
+import net.minecraft.container.PlayerContainer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.CraftingInventory;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.Recipe;
+import net.minecraft.util.DefaultedList;
+import tfar.fastbench.interfaces.CraftingInventoryInterface;
+import tfar.fastbench.interfaces.CraftingResultSlotInterface;
+import tfar.fastbench.interfaces.PlayerContainerInterface;
 
-public class FastBenchSlot extends CraftingResultSlot {
+public class FastBenchPlayerSlot extends CraftingResultSlot {
 
-	protected final FastBenchContainer container;
+	protected final PlayerContainer container;
 	protected final PlayerEntity player;
 
-	public FastBenchSlot(FastBenchContainer container, PlayerEntity player, CraftingInventory inv, Inventory holder, int slotIndex, int xPosition, int yPosition) {
+	public FastBenchPlayerSlot(PlayerContainer container, PlayerEntity player, CraftingInventory inv, Inventory holder, int slotIndex, int xPosition, int yPosition) {
 		super(player, inv, holder, slotIndex, xPosition, yPosition);
 		this.container = container;
 		this.player = player;
@@ -50,9 +53,9 @@ public class FastBenchSlot extends CraftingResultSlot {
 	public ItemStack onTakeItem(PlayerEntity player, ItemStack stack) {
 		this.onCrafted(stack);
 		DefaultedList<ItemStack> list;
-		if (container.lastRecipe != null &&
-						container.lastRecipe.matches(craftingInventory(), container.world))
-			list = container.lastRecipe.getRemainingStacks(craftingInventory());
+		if (_getLastRecipe() != null &&
+						_getLastRecipe().matches(craftingInventory(), player.world))
+			list = _getLastRecipe().getRemainingStacks(craftingInventory());
 		else list = ((CraftingInventoryInterface)craftingInventory()).stacks();
 
 		for (int i = 0; i < list.size(); ++i) {
@@ -77,6 +80,10 @@ public class FastBenchSlot extends CraftingResultSlot {
 		}
 
 		return stack;
+	}
+
+	public Recipe<CraftingInventory> _getLastRecipe(){
+		return ((PlayerContainerInterface)container).getLastRecipe();
 	}
 
 	public void _setAmount(int amount){

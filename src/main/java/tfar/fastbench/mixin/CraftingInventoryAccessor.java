@@ -6,7 +6,7 @@ import net.minecraft.util.DefaultedList;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import tfar.fastbench.CraftingInventoryInterface;
+import tfar.fastbench.interfaces.CraftingInventoryInterface;
 
 @Mixin(CraftingInventory.class)
 class CraftingInventoryAccessor implements CraftingInventoryInterface {

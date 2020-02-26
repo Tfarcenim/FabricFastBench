@@ -1,4 +1,4 @@
-package tfar.fastbench;
+package tfar.fastbench.interfaces;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DefaultedList;

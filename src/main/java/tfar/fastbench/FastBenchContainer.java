@@ -1,8 +1,5 @@
 package tfar.fastbench;
 
-import io.netty.buffer.Unpooled;
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
-import net.minecraft.client.network.packet.GuiSlotUpdateS2CPacket;
 import net.minecraft.container.BlockContext;
 import net.minecraft.container.ContainerType;
 import net.minecraft.container.CraftingTableContainer;
@@ -14,12 +11,9 @@ import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.PacketByteBuf;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import tfar.fastbench.interfaces.CraftingTableContainerInterface;
 
 public class FastBenchContainer  extends CraftingTableContainer {
 
@@ -53,32 +47,10 @@ public class FastBenchContainer  extends CraftingTableContainer {
 
 	@Override
 	public void onContentChanged(Inventory inventoryIn) {
-		this.slotChangedCraftingGrid(world, player, getCraftingInventory(), getCraftingResultInventory());
+		MixinHooks.updateResult(this,world, player, getCraftingInventory(), getCraftingResultInventory());
 	}
 
-	protected void slotChangedCraftingGrid(World world, PlayerEntity player, CraftingInventory inv, CraftingResultInventory result) {
-		if (!world.isClient) {
 
-			ItemStack itemstack = ItemStack.EMPTY;
-
-			if (checkMatrixChanges && (lastRecipe == null || !lastRecipe.matches(inv, world)))
-				lastRecipe = findRecipe(inv, world);
-
-			if (lastRecipe != null) {
-				itemstack = lastRecipe.craft(inv);
-			}
-
-			result.setInvStack(0, itemstack);
-			ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity) player;
-			if (lastLastRecipe != lastRecipe) serverPlayerEntity.networkHandler.sendPacket(new GuiSlotUpdateS2CPacket(syncId, 0, itemstack));
-			else if (lastLastRecipe != null && lastLastRecipe == lastRecipe && !ItemStack.areItemsEqual(lastLastRecipe.craft(inv), lastRecipe.craft(inv)))
-				serverPlayerEntity.networkHandler.sendPacket(new GuiSlotUpdateS2CPacket(syncId, 0, itemstack));
-			PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-			buf.writeString(lastRecipe != null ? lastRecipe.getId().toString() : "null");
-			ServerSidePacketRegistry.INSTANCE.sendToPlayer(player,FastBenchClient.recipe_sync, buf);
-			lastLastRecipe = lastRecipe;
-		}
-	}
 
 	@Override
 	public void close(PlayerEntity player) {
@@ -125,7 +97,7 @@ public class FastBenchContainer  extends CraftingTableContainer {
 				player.dropItem(itemstack2, false);
 			}
 			checkMatrixChanges = true;
-			this.slotChangedCraftingGrid(world, player, getCraftingInventory(), getCraftingResultInventory());
+			MixinHooks.updateResult(this,world, player, getCraftingInventory(), getCraftingResultInventory());
 		}
 		return lastRecipe == null ? ItemStack.EMPTY : itemstack;
 	}
@@ -135,10 +107,6 @@ public class FastBenchContainer  extends CraftingTableContainer {
 		this.lastRecipe = rec;
 		if (rec != null) this.getCraftingResultInventory().setInvStack(0, rec.craft(getCraftingInventory()));
 		else this.getCraftingResultInventory().setInvStack(0, ItemStack.EMPTY);
-	}
-
-	public static Recipe<CraftingInventory> findRecipe(CraftingInventory inv, World world) {
-		return world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, inv, world).orElse(null);
 	}
 
 	@Override
