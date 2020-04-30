@@ -14,9 +14,9 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import tfar.fastbench.interfaces.PlayerContainerInterface;
 
-public class FastBenchClient implements ClientModInitializer {
+import static tfar.fastbench.FastBench.recipe_sync;
 
-	public static final Identifier recipe_sync = new Identifier(FastBench.MODID,"sync_recipe");
+public class FastBenchClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {

@@ -6,8 +6,8 @@ package tfar.fastbench;
 				import net.minecraft.inventory.Inventory;
 				import net.minecraft.item.ItemStack;
 				import net.minecraft.util.DefaultedList;
-				import tfar.fastbench.interfaces.CraftingInventoryInterface;
-				import tfar.fastbench.interfaces.CraftingResultSlotInterface;
+				import tfar.fastbench.mixin.CraftingInventoryAccessor;
+				import tfar.fastbench.mixin.CraftingResultSlotAccessor;
 
 public class FastBenchSlot extends CraftingResultSlot {
 
@@ -53,7 +53,7 @@ public class FastBenchSlot extends CraftingResultSlot {
 		if (container.lastRecipe != null &&
 						container.lastRecipe.matches(craftingInventory(), container.world))
 			list = container.lastRecipe.getRemainingStacks(craftingInventory());
-		else list = ((CraftingInventoryInterface)craftingInventory()).stacks();
+		else list = ((CraftingInventoryAccessor)(Object)craftingInventory()).getStacks();
 
 		for (int i = 0; i < list.size(); ++i) {
 			ItemStack itemstack = this.craftingInventory().getInvStack(i);
@@ -80,14 +80,14 @@ public class FastBenchSlot extends CraftingResultSlot {
 	}
 
 	public void _setAmount(int amount){
-		((CraftingResultSlotInterface)this).setAmount(amount);
+		((CraftingResultSlotAccessor)this).setAmount(amount);
 	}
 
 	public int _getAmount(){
-		return ((CraftingResultSlotInterface)this).getAmount();
+		return ((CraftingResultSlotAccessor)this).getAmount();
 	}
 
 	public CraftingInventory craftingInventory(){
-		return ((CraftingResultSlotInterface)this).craftInventory();
+		return ((CraftingResultSlotAccessor)this).getCraftingInv();
 	}
 }

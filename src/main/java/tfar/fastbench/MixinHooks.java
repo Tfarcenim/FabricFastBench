@@ -35,7 +35,7 @@ public class MixinHooks {
 				serverPlayerEntity.networkHandler.sendPacket(new GuiSlotUpdateS2CPacket(fastBenchContainer.syncId, 0, itemstack));
 			PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
 			buf.writeString(fastBenchContainer.lastRecipe != null ? fastBenchContainer.lastRecipe.getId().toString() : "null");
-			ServerSidePacketRegistry.INSTANCE.sendToPlayer(player,FastBenchClient.recipe_sync, buf);
+			ServerSidePacketRegistry.INSTANCE.sendToPlayer(player,FastBench.recipe_sync, buf);
 			fastBenchContainer.lastLastRecipe = fastBenchContainer.lastRecipe;
 		}
 	}
@@ -62,7 +62,7 @@ public class MixinHooks {
 				serverPlayerEntity.networkHandler.sendPacket(new GuiSlotUpdateS2CPacket(playerContainer.syncId, 0, itemstack));
 			PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
 			buf.writeString(getLastRecipe(playerContainer) != null ? getLastRecipe(playerContainer).getId().toString() : "null");
-			ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, FastBenchClient.recipe_sync, buf);
+			ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, FastBench.recipe_sync, buf);
 			setLastLastRecipe(playerContainer,getLastRecipe(playerContainer));
 		}
 	}

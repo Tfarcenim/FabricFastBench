@@ -8,6 +8,7 @@ public class FastBench implements ModInitializer {
 	public static final String MODID = "fastbench";
 
 	public static final Identifier FASTBENCH = new Identifier(MODID,MODID);
+	public static final Identifier recipe_sync = new Identifier(FastBench.MODID,"sync_recipe");
 
 	@Override
 	public void onInitialize() {

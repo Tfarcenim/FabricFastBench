@@ -13,7 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import tfar.fastbench.interfaces.CraftingTableContainerInterface;
+import tfar.fastbench.mixin.CraftingTableContainerAccessor;
 
 public class FastBenchContainer  extends CraftingTableContainer {
 
@@ -27,8 +27,8 @@ public class FastBenchContainer  extends CraftingTableContainer {
 
 	public FastBenchContainer(int syncId, PlayerEntity player,World world, BlockPos pos) {
 		super(syncId,player.inventory, BlockContext.create(world,pos));
-		Slot slot = new FastBenchSlot(this, player, ((CraftingTableContainerInterface)this).craftingInventory(),
-										((CraftingTableContainerInterface)this).craftingResultInventory(), 0, 124, 35);
+		Slot slot = new FastBenchSlot(this, player, ((CraftingTableContainerAccessor)this).getCraftingInv(),
+										((CraftingTableContainerAccessor)this).getResultInv(), 0, 124, 35);
 		slot.id = 0;
 		slot.setStack(ItemStack.EMPTY);
 		slotList.set(0,slot);
@@ -116,11 +116,11 @@ public class FastBenchContainer  extends CraftingTableContainer {
 
 
 	public CraftingInventory getCraftingInventory(){
-		return ((CraftingTableContainerInterface)this).craftingInventory();
+		return ((CraftingTableContainerAccessor)this).getCraftingInv();
 	}
 
 	public CraftingResultInventory getCraftingResultInventory(){
-		return ((CraftingTableContainerInterface)this).craftingResultInventory();
+		return ((CraftingTableContainerAccessor)this).getResultInv();
 	}
 
 }
