@@ -1,9 +1,5 @@
 package tfar.fastbench.mixin;
 
-import net.minecraft.container.Container;
-import net.minecraft.container.ContainerType;
-import net.minecraft.container.PlayerContainer;
-import net.minecraft.container.Slot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftingInventory;
@@ -11,6 +7,10 @@ import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Recipe;
+import net.minecraft.screen.PlayerScreenHandler;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.screen.slot.Slot;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,12 +25,12 @@ import tfar.fastbench.interfaces.PlayerContainerInterface;
 
 import javax.annotation.Nullable;
 
-@Mixin(PlayerContainer.class)
-abstract class PlayerContainerMixin extends Container implements PlayerContainerInterface {
+@Mixin(PlayerScreenHandler.class)
+abstract class PlayerContainerMixin extends ScreenHandler implements PlayerContainerInterface {
 
 	@Shadow @Final private PlayerEntity owner;
-	@Shadow @Final private CraftingInventory invCrafting;
-	@Shadow @Final private CraftingResultInventory invCraftingResult;
+	@Shadow @Final private CraftingInventory craftingInput;
+	@Shadow @Final private CraftingResultInventory craftingResult;
 	@Unique public Recipe<CraftingInventory> lastRecipe;
 	@Unique protected Recipe<CraftingInventory> lastLastRecipe;
 	@Unique protected boolean checkMatrixChanges = true;
@@ -39,17 +39,17 @@ abstract class PlayerContainerMixin extends Container implements PlayerContainer
 	@Inject(method = "<init>(Lnet/minecraft/entity/player/PlayerInventory;ZLnet/minecraft/entity/player/PlayerEntity;)V",
 					at = @At("RETURN"))
 	private void replaceCraftingSlot(PlayerInventory inv, boolean local, PlayerEntity player, CallbackInfo ci) {
-		Slot slot = new FastBenchPlayerSlot((PlayerContainer) (Object) this, player, invCrafting, invCraftingResult,
+		Slot slot = new FastBenchPlayerSlot((PlayerScreenHandler) (Object) this, player, craftingInput, craftingResult,
 						0, 154, 28);
 		slot.id = 0;
 		slot.setStack(ItemStack.EMPTY);
-		slotList.set(0, slot);
+		slots.set(0, slot);
 	}
 
 	@Inject(method = "onContentChanged", at = @At("HEAD"), cancellable = true)
 	private void updateResult(Inventory inventory, CallbackInfo ci) {
-		PlayerContainer playerContainer = (PlayerContainer) (Object) this;
-		MixinHooks.updateResultP(playerContainer, owner.world, this.owner, this.invCrafting, this.invCraftingResult);
+		PlayerScreenHandler playerContainer = (PlayerScreenHandler) (Object) this;
+		MixinHooks.updateResultP(playerContainer, owner.world, this.owner, this.craftingInput, this.craftingResult);
 		ci.cancel();
 	}
 
@@ -59,11 +59,11 @@ abstract class PlayerContainerMixin extends Container implements PlayerContainer
 
 
 		ItemStack stackCopy = ItemStack.EMPTY;
-		Slot slot = slotList.get(index);
+		Slot slot = slots.get(index);
 
 		if (slot != null && slot.hasStack()) {
 			checkMatrixChanges = false;
-			while (lastRecipe != null && lastRecipe.matches(invCrafting, player.world)) {
+			while (lastRecipe != null && lastRecipe.matches(craftingInput, player.world)) {
 				ItemStack stack = slot.getStack();
 				stackCopy = stack.copy();
 
@@ -88,7 +88,7 @@ abstract class PlayerContainerMixin extends Container implements PlayerContainer
 				player.dropItem(itemstack2, false);
 			}
 			checkMatrixChanges = true;
-			MixinHooks.updateResultP((PlayerContainer) (Object) this, player.world, player, invCrafting, invCraftingResult);
+			MixinHooks.updateResultP((PlayerScreenHandler) (Object) this, player.world, player, craftingInput, craftingResult);
 		}
 		cir.setReturnValue(lastRecipe == null ? ItemStack.EMPTY : stackCopy);
 	}
@@ -116,8 +116,8 @@ abstract class PlayerContainerMixin extends Container implements PlayerContainer
 	public void updateLastRecipe(Recipe<CraftingInventory> rec) {
 		this.lastLastRecipe = lastRecipe;
 		this.lastRecipe = rec;
-		if (rec != null) this.invCraftingResult.setInvStack(0, rec.craft(invCrafting));
-		else this.invCraftingResult.setInvStack(0, ItemStack.EMPTY);
+		if (rec != null) this.craftingResult.setStack(0, rec.craft(craftingInput));
+		else this.craftingResult.setStack(0, ItemStack.EMPTY);
 	}
 
 	@Override
@@ -125,7 +125,7 @@ abstract class PlayerContainerMixin extends Container implements PlayerContainer
 		return checkMatrixChanges;
 	}
 
-	protected PlayerContainerMixin(@Nullable ContainerType<?> type, int syncId) {
+	protected PlayerContainerMixin(@Nullable ScreenHandlerType<?> type, int syncId) {
 		super(type, syncId);
 	}
 }

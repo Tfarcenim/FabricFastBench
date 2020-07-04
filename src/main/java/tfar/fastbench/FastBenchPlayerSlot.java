@@ -1,23 +1,23 @@
 package tfar.fastbench;
 
-import net.minecraft.container.CraftingResultSlot;
-import net.minecraft.container.PlayerContainer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Recipe;
-import net.minecraft.util.DefaultedList;
+import net.minecraft.screen.PlayerScreenHandler;
+import net.minecraft.screen.slot.CraftingResultSlot;
+import net.minecraft.util.collection.DefaultedList;
 import tfar.fastbench.mixin.CraftingInventoryAccessor;
 import tfar.fastbench.mixin.CraftingResultSlotAccessor;
 import tfar.fastbench.interfaces.PlayerContainerInterface;
 
 public class FastBenchPlayerSlot extends CraftingResultSlot {
 
-	protected final PlayerContainer container;
+	protected final PlayerScreenHandler container;
 	protected final PlayerEntity player;
 
-	public FastBenchPlayerSlot(PlayerContainer container, PlayerEntity player, CraftingInventory inv, Inventory holder, int slotIndex, int xPosition, int yPosition) {
+	public FastBenchPlayerSlot(PlayerScreenHandler container, PlayerEntity player, CraftingInventory inv, Inventory holder, int slotIndex, int xPosition, int yPosition) {
 		super(player, inv, holder, slotIndex, xPosition, yPosition);
 		this.container = container;
 		this.player = player;
@@ -59,20 +59,20 @@ public class FastBenchPlayerSlot extends CraftingResultSlot {
 		else list = ((CraftingInventoryAccessor)(Object)craftingInventory()).getStacks();
 
 		for (int i = 0; i < list.size(); ++i) {
-			ItemStack itemstack = this.craftingInventory().getInvStack(i);
+			ItemStack itemstack = this.craftingInventory().getStack(i);
 			ItemStack itemstack1 = list.get(i);
 
 			if (!itemstack.isEmpty()) {
-				this.craftingInventory().takeInvStack(i, 1);
-				itemstack = this.craftingInventory().getInvStack(i);
+				this.craftingInventory().removeStack(i, 1);
+				itemstack = this.craftingInventory().getStack(i);
 			}
 
 			if (!itemstack1.isEmpty()) {
 				if (itemstack.isEmpty()) {
-					this.craftingInventory().setInvStack(i, itemstack1);
+					this.craftingInventory().setStack(i, itemstack1);
 				} else if (ItemStack.areItemsEqual(itemstack, itemstack1) && ItemStack.areItemsEqual(itemstack, itemstack1)) {
 					itemstack1.increment(itemstack.getCount());
-					this.craftingInventory().setInvStack(i, itemstack1);
+					this.craftingInventory().setStack(i, itemstack1);
 				} else if (!this.player.inventory.insertStack(itemstack1)) {
 					this.player.dropItem(itemstack1, false);
 				}
@@ -95,6 +95,6 @@ public class FastBenchPlayerSlot extends CraftingResultSlot {
 	}
 
 	public CraftingInventory craftingInventory(){
-		return ((CraftingResultSlotAccessor)this).getCraftingInv();
+		return ((CraftingResultSlotAccessor)this).getInput();
 	}
 }

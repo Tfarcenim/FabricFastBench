@@ -1,7 +1,7 @@
 package tfar.fastbench.mixin;
 
-import net.minecraft.container.CraftingResultSlot;
 import net.minecraft.inventory.CraftingInventory;
+import net.minecraft.screen.slot.CraftingResultSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -9,5 +9,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface CraftingResultSlotAccessor {
 	@Accessor int getAmount();
 	@Accessor void setAmount(int amount);
-	@Accessor CraftingInventory getCraftingInv();
+	@Accessor CraftingInventory getInput();
 }

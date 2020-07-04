@@ -2,45 +2,50 @@ package tfar.fastbench;
 
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
-import net.minecraft.client.network.packet.GuiSlotUpdateS2CPacket;
-import net.minecraft.container.PlayerContainer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeType;
+import net.minecraft.screen.CraftingScreenHandler;
+import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.PacketByteBuf;
 import net.minecraft.world.World;
+import tfar.fastbench.interfaces.CraftingScreenHandlerDuck;
 import tfar.fastbench.interfaces.PlayerContainerInterface;
 
 public class MixinHooks {
-	public static void updateResult(FastBenchContainer fastBenchContainer, World world, PlayerEntity player, CraftingInventory inv, CraftingResultInventory result) {
+	public static void updateResult(CraftingScreenHandler fastBenchContainer, PlayerEntity player, CraftingInventory inv, CraftingResultInventory result) {
+		World world = player.world;
 		if (!world.isClient) {
 
 			ItemStack itemstack = ItemStack.EMPTY;
 
-			if (fastBenchContainer.checkMatrixChanges && (fastBenchContainer.lastRecipe == null || !fastBenchContainer.lastRecipe.matches(inv, world)))
-				fastBenchContainer.lastRecipe = findRecipe(inv, world);
+			CraftingScreenHandlerDuck duck = (CraftingScreenHandlerDuck)fastBenchContainer;
+			
+			if (duck.checkMatrixChanges() && (duck.lastRecipe() == null || !duck.lastRecipe().matches(inv, world)))
+				duck.setLastRecipe(findRecipe(inv, world));
 
-			if (fastBenchContainer.lastRecipe != null) {
-				itemstack = fastBenchContainer.lastRecipe.craft(inv);
+			if (duck.lastRecipe() != null) {
+				itemstack = duck.lastRecipe().craft(inv);
 			}
 
-			result.setInvStack(0, itemstack);
+			result.setStack(0, itemstack);
 			ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity) player;
-			if (fastBenchContainer.lastLastRecipe != fastBenchContainer.lastRecipe) serverPlayerEntity.networkHandler.sendPacket(new GuiSlotUpdateS2CPacket(fastBenchContainer.syncId, 0, itemstack));
-			else if (fastBenchContainer.lastLastRecipe != null && fastBenchContainer.lastLastRecipe == fastBenchContainer.lastRecipe && !ItemStack.areItemsEqual(fastBenchContainer.lastLastRecipe.craft(inv), fastBenchContainer.lastRecipe.craft(inv)))
-				serverPlayerEntity.networkHandler.sendPacket(new GuiSlotUpdateS2CPacket(fastBenchContainer.syncId, 0, itemstack));
+			if (duck.lastLastRecipe() != duck.lastRecipe()) serverPlayerEntity.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(fastBenchContainer.syncId, 0, itemstack));
+			else if (duck.lastLastRecipe() != null && duck.lastLastRecipe() == duck.lastRecipe() && !ItemStack.areItemsEqual(duck.lastLastRecipe().craft(inv), duck.lastRecipe().craft(inv)))
+				serverPlayerEntity.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(fastBenchContainer.syncId, 0, itemstack));
 			PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-			buf.writeString(fastBenchContainer.lastRecipe != null ? fastBenchContainer.lastRecipe.getId().toString() : "null");
+			buf.writeString(duck.lastRecipe() != null ? duck.lastRecipe().getId().toString() : "null");
 			ServerSidePacketRegistry.INSTANCE.sendToPlayer(player,FastBench.recipe_sync, buf);
-			fastBenchContainer.lastLastRecipe = fastBenchContainer.lastRecipe;
+			duck.setLastLastRecipe(duck.lastRecipe());
 		}
 	}
 
-	public static void updateResultP(PlayerContainer playerContainer, World world, PlayerEntity player, CraftingInventory inv, CraftingResultInventory result) {
+	public static void updateResultP(PlayerScreenHandler playerContainer, World world, PlayerEntity player, CraftingInventory inv, CraftingResultInventory result) {
 		if (!world.isClient) {
 
 			ItemStack itemstack = ItemStack.EMPTY;
@@ -53,13 +58,13 @@ public class MixinHooks {
 				itemstack = getLastRecipe(playerContainer).craft(inv);
 			}
 
-			result.setInvStack(0, itemstack);
+			result.setStack(0, itemstack);
 			ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity) player;
 			if (getLastLastRecipe(playerContainer) != getLastRecipe(playerContainer))
-				serverPlayerEntity.networkHandler.sendPacket(new GuiSlotUpdateS2CPacket(playerContainer.syncId, 0, itemstack));
+				serverPlayerEntity.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(playerContainer.syncId, 0, itemstack));
 			else if (getLastLastRecipe(playerContainer) != null && getLastLastRecipe(playerContainer) == getLastRecipe(playerContainer)
 							&& !ItemStack.areItemsEqual(getLastLastRecipe(playerContainer).craft(inv), getLastRecipe(playerContainer).craft(inv)))
-				serverPlayerEntity.networkHandler.sendPacket(new GuiSlotUpdateS2CPacket(playerContainer.syncId, 0, itemstack));
+				serverPlayerEntity.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(playerContainer.syncId, 0, itemstack));
 			PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
 			buf.writeString(getLastRecipe(playerContainer) != null ? getLastRecipe(playerContainer).getId().toString() : "null");
 			ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, FastBench.recipe_sync, buf);
@@ -67,23 +72,23 @@ public class MixinHooks {
 		}
 	}
 
-		public static Recipe<CraftingInventory> getLastRecipe(PlayerContainer playerContainer){
+		public static Recipe<CraftingInventory> getLastRecipe(PlayerScreenHandler playerContainer){
 		return ((PlayerContainerInterface)playerContainer).getLastRecipe();
 		}
 
-	public static void setLastRecipe(PlayerContainer playerContainer,Recipe<CraftingInventory> recipe){
+	public static void setLastRecipe(PlayerScreenHandler playerContainer,Recipe<CraftingInventory> recipe){
 		((PlayerContainerInterface)playerContainer).setLastRecipe(recipe);
 	}
 
-	public static boolean checkMatrixChanges(PlayerContainer playerContainer){
+	public static boolean checkMatrixChanges(PlayerScreenHandler playerContainer){
 		return ((PlayerContainerInterface)playerContainer).checkMatrixChanges();
 	}
 
-	public static Recipe<CraftingInventory> getLastLastRecipe(PlayerContainer playerContainer){
+	public static Recipe<CraftingInventory> getLastLastRecipe(PlayerScreenHandler playerContainer){
 		return ((PlayerContainerInterface)playerContainer).getLastLastRecipe();
 	}
 
-	public static void setLastLastRecipe(PlayerContainer playerContainer,Recipe<CraftingInventory> recipe){
+	public static void setLastLastRecipe(PlayerScreenHandler playerContainer,Recipe<CraftingInventory> recipe){
 		((PlayerContainerInterface)playerContainer).setLastLastRecipe(recipe);
 	}
 
