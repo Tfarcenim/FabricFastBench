@@ -18,7 +18,6 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "tfar.fastbench.FastBench"
     ],
     "client": [
       "tfar.fastbench.FastBenchClient"

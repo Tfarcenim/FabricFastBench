@@ -1,7 +1,6 @@
 package tfar.fastbench.mixin;
 
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.inventory.Inventory;
@@ -15,16 +14,13 @@ import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tfar.fastbench.MixinHooks;
-import tfar.fastbench.interfaces.CraftingScreenHandlerDuck;
+import tfar.fastbench.interfaces.CraftingDuck;
 
 import javax.annotation.Nullable;
 
 @Mixin(CraftingScreenHandler.class)
-abstract class CraftingContainerMixin extends ScreenHandler implements CraftingScreenHandlerDuck {
+abstract class CraftingContainerMixin extends ScreenHandler implements CraftingDuck {
 
 	@Shadow @Final private CraftingInventory input;
 	@Shadow @Final private CraftingResultInventory result;
@@ -91,12 +87,12 @@ abstract class CraftingContainerMixin extends ScreenHandler implements CraftingS
 	}
 
 	@Override
-	public Recipe<CraftingInventory> lastRecipe() {
+	public Recipe<CraftingInventory> getLastRecipe() {
 		return lastRecipe;
 	}
 
 	@Override
-	public Recipe<CraftingInventory> lastLastRecipe() {
+	public Recipe<CraftingInventory> getLastLastRecipe() {
 		return lastLastRecipe;
 	}
 

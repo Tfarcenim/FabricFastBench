@@ -19,14 +19,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import tfar.fastbench.FastBenchPlayerSlot;
 import tfar.fastbench.MixinHooks;
-import tfar.fastbench.interfaces.PlayerContainerInterface;
+import tfar.fastbench.interfaces.CraftingDuck;
 
 import javax.annotation.Nullable;
 
 @Mixin(PlayerScreenHandler.class)
-abstract class PlayerContainerMixin extends ScreenHandler implements PlayerContainerInterface {
+abstract class PlayerContainerMixin extends ScreenHandler implements CraftingDuck {
 
 	@Shadow @Final private PlayerEntity owner;
 	@Shadow @Final private CraftingInventory craftingInput;
@@ -35,16 +34,6 @@ abstract class PlayerContainerMixin extends ScreenHandler implements PlayerConta
 	@Unique protected Recipe<CraftingInventory> lastLastRecipe;
 	@Unique protected boolean checkMatrixChanges = true;
 	@Unique protected boolean useNormalTransfer = false;
-
-	@Inject(method = "<init>(Lnet/minecraft/entity/player/PlayerInventory;ZLnet/minecraft/entity/player/PlayerEntity;)V",
-					at = @At("RETURN"))
-	private void replaceCraftingSlot(PlayerInventory inv, boolean local, PlayerEntity player, CallbackInfo ci) {
-		Slot slot = new FastBenchPlayerSlot((PlayerScreenHandler) (Object) this, player, craftingInput, craftingResult,
-						0, 154, 28);
-		slot.id = 0;
-		slot.setStack(ItemStack.EMPTY);
-		slots.set(0, slot);
-	}
 
 	@Inject(method = "onContentChanged", at = @At("HEAD"), cancellable = true)
 	private void updateResult(Inventory inventory, CallbackInfo ci) {
