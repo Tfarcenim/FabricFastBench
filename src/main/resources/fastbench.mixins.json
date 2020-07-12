@@ -3,10 +3,13 @@
   "package": "tfar.fastbench.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "ContainerAccessor",
+    "CraftingContainerAccessor",
     "CraftingContainerMixin",
     "CraftingInventoryAccessor",
-    "CraftingResultSlotAccessor",
+    "CraftingInventoryMixin",
     "CraftingResultSlotMixin",
+    "PlayerContainerAccessor",
     "PlayerContainerMixin"
   ],
   "injectors": {
