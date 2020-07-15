@@ -18,6 +18,10 @@ import tfar.fastbench.mixin.ContainerAccessor;
 
 public class MixinHooks {
 
+	public static boolean hascachedrecipe = false;
+
+	public static Recipe<CraftingInventory> lastRecipe;
+
 	public static void slotChangedCraftingGrid(World world, PlayerEntity player, CraftingInventory inv, CraftingResultInventory result) {
 		if (!world.isClient) {
 

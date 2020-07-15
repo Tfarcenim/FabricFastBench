@@ -10,7 +10,8 @@
     "CraftingInventoryMixin",
     "CraftingResultSlotMixin",
     "PlayerContainerAccessor",
-    "PlayerContainerMixin"
+    "PlayerContainerMixin",
+    "RecipeManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

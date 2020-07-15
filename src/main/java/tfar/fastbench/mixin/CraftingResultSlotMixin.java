@@ -14,7 +14,10 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import tfar.fastbench.MixinHooks;
 
 @Mixin(CraftingResultSlot.class)
 public class CraftingResultSlotMixin extends Slot {
@@ -50,12 +53,11 @@ public class CraftingResultSlotMixin extends Slot {
 	}
 
 	//inventory is actually the crafting result inventory so it's a safe cast
-	@Redirect(method = "onTakeItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/recipe/RecipeManager;getRemainingStacks(Lnet/minecraft/recipe/RecipeType;Lnet/minecraft/inventory/Inventory;Lnet/minecraft/world/World;)Lnet/minecraft/util/collection/DefaultedList;"))
-	private DefaultedList<ItemStack> cache(RecipeManager recipeManager, RecipeType<CraftingRecipe> recipeType, Inventory craftInput, World world) {
+	//using an inject instead of a redirect as a workaround for tech reborn's BS
+	@Inject(method = "onTakeItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/recipe/RecipeManager;getRemainingStacks(Lnet/minecraft/recipe/RecipeType;Lnet/minecraft/inventory/Inventory;Lnet/minecraft/world/World;)Lnet/minecraft/util/collection/DefaultedList;"))
+	private void cache(PlayerEntity player, ItemStack stack, CallbackInfoReturnable<ItemStack> cir) {
 		Recipe<CraftingInventory> lastRecipe = (Recipe<CraftingInventory>) ((CraftingResultInventory)this.inventory).getLastRecipe();
-		if (lastRecipe != null &&
-						lastRecipe.matches(input, player.world))
-			return lastRecipe.getRemainingStacks(input);
-		else return ((CraftingInventoryAccessor) input).getStacks();
+		MixinHooks.lastRecipe = lastRecipe != null && lastRecipe.matches(input, player.world) ? lastRecipe : null;
+		MixinHooks.hascachedrecipe = true;
 	}
 }
