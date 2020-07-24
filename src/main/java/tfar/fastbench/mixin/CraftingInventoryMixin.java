@@ -27,5 +27,4 @@ public class CraftingInventoryMixin implements CraftingInventoryDuck {
 	private void checkForChanges(ScreenHandler screenHandler, Inventory inventory) {
 		if (checkMatrixChanges)handler.onContentChanged((Inventory)this);
 	}
-
 }
