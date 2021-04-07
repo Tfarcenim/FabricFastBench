@@ -9,12 +9,13 @@
     "Tfarecnim"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/Tfarcenim/FabricFastBench",
+    "sources": "https://github.com/Tfarcenim/FabricFastBench",
+    "issues": "https://github.com/Tfarcenim/FabricFastBench"
   },
 
-  "license": "CC0-1.0",
-
+  "license": "MIT",
+  "icon": "assets/fastbench/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -31,7 +32,8 @@
     "fabricloader": ">=0.7.2",
     "fabric": "*"
   },
-  "suggests": {
-    "flamingo": "*"
+
+  "conflicts": {
+    "itemscroller": "*"
   }
 }
