@@ -2,15 +2,12 @@ package tfar.fastbench;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.CraftingResultInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.screen.CraftingScreenHandler;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.Identifier;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
 import tfar.fastbench.mixin.CraftingContainerAccessor;
 import tfar.fastbench.mixin.PlayerContainerAccessor;
 
@@ -23,38 +20,38 @@ public class FastBenchClient implements ClientModInitializer {
 
 		ClientSidePacketRegistry.INSTANCE.register(recipe_sync,
 						(packetContext, attachedData) -> {
-							Identifier location = attachedData.readIdentifier();
+							ResourceLocation location = attachedData.readResourceLocation();
 							packetContext.getTaskQueue().execute(() -> {
-								ScreenHandler container = packetContext.getPlayer().currentScreenHandler;
-								if (container instanceof PlayerScreenHandler || container instanceof CraftingScreenHandler) {
-									Recipe<?> r = MinecraftClient.getInstance().world.getRecipeManager().get(location).orElse(null);
-									updateLastRecipe(packetContext.getPlayer().currentScreenHandler, (Recipe<CraftingInventory>) r);
+								AbstractContainerMenu container = packetContext.getPlayer().containerMenu;
+								if (container instanceof InventoryMenu || container instanceof CraftingMenu) {
+									Recipe<?> r = Minecraft.getInstance().level.getRecipeManager().byKey(location).orElse(null);
+									updateLastRecipe(packetContext.getPlayer().containerMenu, (Recipe<CraftingContainer>) r);
 								}
 							});
 						});
 	}
 
-	public static void updateLastRecipe(ScreenHandler container, Recipe<CraftingInventory> rec) {
+	public static void updateLastRecipe(AbstractContainerMenu container, Recipe<CraftingContainer> rec) {
 
-		CraftingInventory craftInput = null;
-		CraftingResultInventory craftResult = null;
+		CraftingContainer craftInput = null;
+		ResultContainer craftResult = null;
 
-		if (container instanceof PlayerScreenHandler) {
-			craftInput = ((PlayerContainerAccessor)container).getCraftingInput();
-			craftResult = ((PlayerContainerAccessor)container).getCraftingResult();
+		if (container instanceof InventoryMenu) {
+			craftInput = ((PlayerContainerAccessor)container).getCraftSlots();
+			craftResult = ((PlayerContainerAccessor)container).getResultSlots();
 		}
 
-		else if (container instanceof CraftingScreenHandler) {
-			craftInput = ((CraftingContainerAccessor)container).getInput();
-			craftResult = ((CraftingContainerAccessor)container).getResult();
+		else if (container instanceof CraftingMenu) {
+			craftInput = ((CraftingContainerAccessor)container).getCraftSlots();
+			craftResult = ((CraftingContainerAccessor)container).getResultSlots();
 		}
 
 		if (craftInput == null) {
 			System.out.println("why are these null?");
 		} else {
-		craftResult.setLastRecipe(rec);
-		if (rec != null) craftResult.setStack(0, rec.craft(craftInput));
-		else craftResult.setStack(0, ItemStack.EMPTY);
+		craftResult.setRecipeUsed(rec);
+		if (rec != null) craftResult.setItem(0, rec.assemble(craftInput));
+		else craftResult.setItem(0, ItemStack.EMPTY);
 		}
 	}
 }

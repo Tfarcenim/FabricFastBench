@@ -1,11 +1,10 @@
 package tfar.fastbench;
 
-import net.fabricmc.api.ModInitializer;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public class FastBench {
 	public static final String MODID = "fastbench";
 
-	public static final Identifier recipe_sync = new Identifier(FastBench.MODID,"sync_recipe");
+	public static final ResourceLocation recipe_sync = new ResourceLocation(FastBench.MODID,"sync_recipe");
 
 }

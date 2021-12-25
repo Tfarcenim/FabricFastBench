@@ -1,38 +1,32 @@
 package tfar.fastbench.mixin;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.CraftingResultInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.*;
-import net.minecraft.screen.slot.CraftingResultSlot;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.world.World;
+
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tfar.fastbench.MixinHooks;
 
-@Mixin(CraftingResultSlot.class)
+@Mixin(ResultSlot.class)
 public class CraftingResultSlotMixin extends Slot {
 
-	@Shadow
-	@Final
-	private CraftingInventory input;
+	@Shadow @Final private CraftingContainer craftSlots;
 
-	public CraftingResultSlotMixin(Inventory inventory, int index, int x, int y) {
+	public CraftingResultSlotMixin(Container inventory, int index, int x, int y) {
 		super(inventory, index, x, y);
 	}
 
 	@Redirect(method = "takeStack",at = @At(value = "INVOKE",target = "Lnet/minecraft/screen/slot/Slot;takeStack(I)Lnet/minecraft/item/ItemStack;"))
 	private ItemStack copy(Slot slot, int amount) {
-		return slot.getStack().copy();
+		return slot.getItem().copy();
 	}
 
 	@Override
@@ -40,18 +34,18 @@ public class CraftingResultSlotMixin extends Slot {
 		//do nothing
 	}
 
-	@Redirect(method = "onCrafted(Lnet/minecraft/item/ItemStack;)V",
-					at = @At(value = "INVOKE",target = "Lnet/minecraft/recipe/RecipeUnlocker;unlockLastRecipe(Lnet/minecraft/entity/player/PlayerEntity;)V"))
-	public void no(RecipeUnlocker recipeUnlocker, PlayerEntity player) {
+	@Redirect(method = "checkTakeAchievements",
+					at = @At(value = "INVOKE",target = "Lnet/minecraft/world/inventory/RecipeHolder;awardUsedRecipes(Lnet/minecraft/world/entity/player/Player;)V"))
+	public void no(RecipeHolder recipeUnlocker, Player player) {
 		//do nothing
 	}
 
 	//inventory is actually the crafting result inventory so it's a safe cast
 	//using an inject instead of a redirect as a workaround for tech reborn's BS
-	@Inject(method = "onTakeItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/recipe/RecipeManager;getRemainingStacks(Lnet/minecraft/recipe/RecipeType;Lnet/minecraft/inventory/Inventory;Lnet/minecraft/world/World;)Lnet/minecraft/util/collection/DefaultedList;"))
-	private void cache(PlayerEntity player, ItemStack stack, CallbackInfoReturnable<ItemStack> cir) {
-		Recipe<CraftingInventory> lastRecipe = (Recipe<CraftingInventory>) ((CraftingResultInventory)this.inventory).getLastRecipe();
-		MixinHooks.lastRecipe = lastRecipe != null && lastRecipe.matches(input, player.world) ? lastRecipe : null;
+	@Inject(method = "onTake", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/crafting/RecipeManager;getRemainingItemsFor(Lnet/minecraft/world/item/crafting/RecipeType;Lnet/minecraft/world/Container;Lnet/minecraft/world/level/Level;)Lnet/minecraft/core/NonNullList;"))
+	private void cache(Player player, ItemStack stack, CallbackInfo ci) {
+		Recipe<CraftingContainer> lastRecipe = (Recipe<CraftingContainer>) ((ResultContainer)this.craftSlots).getLastRecipe();
+		MixinHooks.lastRecipe = lastRecipe != null && lastRecipe.matches(craftSlots, player.level) ? lastRecipe : null;
 		MixinHooks.hascachedrecipe = true;
 	}
 }

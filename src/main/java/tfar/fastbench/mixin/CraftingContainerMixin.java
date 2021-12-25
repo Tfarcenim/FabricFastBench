@@ -1,13 +1,9 @@
 package tfar.fastbench.mixin;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.CraftingResultInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.AbstractRecipeScreenHandler;
-import net.minecraft.screen.CraftingScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -19,26 +15,26 @@ import tfar.fastbench.MixinHooks;
 
 import javax.annotation.Nullable;
 
-@Mixin(CraftingScreenHandler.class)
-abstract class CraftingContainerMixin<C extends Inventory> extends AbstractRecipeScreenHandler<C> {
+@Mixin(CraftingMenu.class)
+abstract class CraftingContainerMixin<C extends Container> extends RecipeBookMenu<C> {
 
-	@Shadow @Final private CraftingInventory input;
-	@Shadow @Final private CraftingResultInventory result;
-	@Shadow @Final private PlayerEntity player;
+	@Shadow @Final private CraftingContainer craftSlots;
+	@Shadow @Final private ResultContainer resultSlots;
+	@Shadow @Final private Player player;
 
-	protected CraftingContainerMixin(@Nullable ScreenHandlerType<?> type, int syncId) {
+	protected CraftingContainerMixin(@Nullable MenuType<?> type, int syncId) {
 		super(type, syncId);
 	}
 
 
 	@Overwrite
-	public void onContentChanged(Inventory inventory) {
-		MixinHooks.slotChangedCraftingGrid(this.player.world, player, input, result);
+	public void slotsChanged(Container inventory) {
+		MixinHooks.slotChangedCraftingGrid(this.player.level, player, craftSlots, resultSlots);
 	}
 
-	@Inject(method = "transferSlot",at = @At("HEAD"),cancellable = true)
-	private void handleShiftCraft(PlayerEntity player, int index, CallbackInfoReturnable<ItemStack> cir) {
+	@Inject(method = "quickMoveStack",at = @At("HEAD"),cancellable = true)
+	private void handleShiftCraft(Player player, int index, CallbackInfoReturnable<ItemStack> cir) {
 		if (index != 0) return;
-		cir.setReturnValue(MixinHooks.handleShiftCraft(player, this, this.slots.get(index), this.input, this.result, 10, 46));
+		cir.setReturnValue(MixinHooks.handleShiftCraft(player, this, this.slots.get(index), this.craftSlots, this.resultSlots, 10, 46));
 	}
 }

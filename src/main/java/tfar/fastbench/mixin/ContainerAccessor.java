@@ -1,13 +1,13 @@
 package tfar.fastbench.mixin;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(ScreenHandler.class)
+@Mixin(AbstractContainerMenu.class)
 public interface ContainerAccessor {
-	@Invoker("insertItem")
+	@Invoker("moveItemStackTo")
 	boolean insert(ItemStack stack, int startIndex, int endIndex, boolean fromLast);
 
 }

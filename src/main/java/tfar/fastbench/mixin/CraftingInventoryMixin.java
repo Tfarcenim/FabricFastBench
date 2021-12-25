@@ -1,8 +1,8 @@
 package tfar.fastbench.mixin;
 
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.screen.ScreenHandler;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.CraftingContainer;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -10,10 +10,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import tfar.fastbench.interfaces.CraftingInventoryDuck;
 
-@Mixin(CraftingInventory.class)
+@Mixin(CraftingContainer.class)
 public class CraftingInventoryMixin implements CraftingInventoryDuck {
 
-	@Shadow @Final private ScreenHandler handler;
+	@Shadow @Final private AbstractContainerMenu menu;
 	public boolean checkMatrixChanges = true;
 
 
@@ -22,9 +22,9 @@ public class CraftingInventoryMixin implements CraftingInventoryDuck {
 		this.checkMatrixChanges = checkMatrixChanges;
 	}
 
-	@Redirect(method = {"removeStack(II)Lnet/minecraft/item/ItemStack;",
-					"setStack"},at = @At(value = "INVOKE",target = "Lnet/minecraft/screen/ScreenHandler;onContentChanged(Lnet/minecraft/inventory/Inventory;)V"))
-	private void checkForChanges(ScreenHandler screenHandler, Inventory inventory) {
-		if (checkMatrixChanges)handler.onContentChanged((Inventory)this);
+	@Redirect(method = {"removeItem",
+					"setItem"},at = @At(value = "INVOKE",target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;slotsChanged(Lnet/minecraft/world/Container;)V"))
+	private void checkForChanges(AbstractContainerMenu screenHandler, Container inventory) {
+		if (checkMatrixChanges) menu.slotsChanged((Container)this);
 	}
 }

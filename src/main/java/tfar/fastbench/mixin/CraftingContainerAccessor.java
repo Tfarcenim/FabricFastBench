@@ -1,15 +1,15 @@
 package tfar.fastbench.mixin;
 
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.CraftingResultInventory;
-import net.minecraft.screen.CraftingScreenHandler;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.CraftingMenu;
+import net.minecraft.world.inventory.ResultContainer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(CraftingScreenHandler.class)
+@Mixin(CraftingMenu.class)
 public interface CraftingContainerAccessor {
 	@Accessor
-	CraftingInventory getInput();
+	CraftingContainer getCraftSlots();
 	@Accessor
-	CraftingResultInventory getResult();
+	ResultContainer getResultSlots();
 }

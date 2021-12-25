@@ -2,17 +2,18 @@ package tfar.fastbench;
 
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.CraftingResultInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.ResultContainer;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import tfar.fastbench.interfaces.CraftingInventoryDuck;
 import tfar.fastbench.mixin.ContainerAccessor;
 
@@ -20,66 +21,68 @@ public class MixinHooks {
 
 	public static boolean hascachedrecipe = false;
 
-	public static Recipe<CraftingInventory> lastRecipe;
+	public static Recipe<CraftingContainer> lastRecipe;
 
-	public static void slotChangedCraftingGrid(World world, PlayerEntity player, CraftingInventory inv, CraftingResultInventory result) {
-		if (!world.isClient) {
+	public static void slotChangedCraftingGrid(Level level, Player player, CraftingContainer inv, ResultContainer result) {
+		if (!level.isClientSide) {
 
 			ItemStack itemstack = ItemStack.EMPTY;
 
-			Recipe<CraftingInventory> recipe = (Recipe<CraftingInventory>) result.getLastRecipe();
-			if (recipe == null || !recipe.matches(inv, world)) recipe = findRecipe(inv, world);
+			Recipe<CraftingContainer> recipe = (Recipe<CraftingContainer>) result.getRecipeUsed();
+			if (recipe == null || !recipe.matches(inv, level)) recipe = findRecipe(inv, level);
 
 			if (recipe != null) {
-				itemstack = recipe.craft(inv);
+				itemstack = recipe.assemble(inv);
 			}
 
-			result.setStack(0, itemstack);
-			PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-			buf.writeIdentifier(recipe != null ? recipe.getId(): new Identifier("null","null"));
+			result.setItem(0, itemstack);
+			FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+			buf.writeResourceLocation(recipe != null ? recipe.getId(): new ResourceLocation("null","null"));
 			ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, FastBench.recipe_sync, buf);
 
-			result.setLastRecipe(recipe);
+			result.setRecipeUsed(recipe);
 		}
 	}
 
-	public static ItemStack handleShiftCraft(PlayerEntity player, ScreenHandler container, Slot resultSlot, CraftingInventory input, CraftingResultInventory craftResult, int outStart, int outEnd) {
+	public static ItemStack handleShiftCraft(Player player, AbstractContainerMenu container, Slot resultSlot, CraftingContainer input, ResultContainer craftResult, int outStart, int outEnd) {
 		ItemStack outputCopy = ItemStack.EMPTY;
 		CraftingInventoryDuck duck = (CraftingInventoryDuck)input;
 		duck.setCheckMatrixChanges(false);
-		if (resultSlot != null && resultSlot.hasStack()) {
+		if (resultSlot != null && resultSlot.hasItem()) {
 
-			Recipe<CraftingInventory> recipe = (Recipe<CraftingInventory>) craftResult.getLastRecipe();
-			while (recipe != null && recipe.matches(input, player.world)) {
-				ItemStack recipeOutput = resultSlot.getStack().copy();
+			Recipe<CraftingContainer> recipe = (Recipe<CraftingContainer>) craftResult.getRecipeUsed();
+
+			while (recipe != null && recipe.matches(input, player.level)) {
+				ItemStack recipeOutput = resultSlot.getItem().copy();
 				outputCopy = recipeOutput.copy();
 
-				recipeOutput.getItem().onCraft(recipeOutput, player.world, player);
+				recipeOutput.getItem().onCraftedBy(recipeOutput, player.level, player);
 
-				if (!player.world.isClient && !((ContainerAccessor)container).insert(recipeOutput, outStart, outEnd,true)) {
+				if (!player.level.isClientSide && !((ContainerAccessor)container).insert(recipeOutput, outStart, outEnd,true)) {
 					duck.setCheckMatrixChanges(true);
 					return ItemStack.EMPTY;
 				}
 
-				resultSlot.onStackChanged(recipeOutput, outputCopy);
-				resultSlot.markDirty();
+				resultSlot.onQuickCraft(recipeOutput, outputCopy);
+				resultSlot.setChanged();
 
-				if (!player.world.isClient && recipeOutput.getCount() == outputCopy.getCount()) {
+				if (!player.level.isClientSide && recipeOutput.getCount() == outputCopy.getCount()) {
 					duck.setCheckMatrixChanges(true);
 					return ItemStack.EMPTY;
 				}
 
-				ItemStack itemstack2 = resultSlot.onTakeItem(player, recipeOutput);
-				player.dropItem(itemstack2, false);
+				resultSlot.onTake(player, recipeOutput);
+
+				player.drop(resultSlot.getItem(), false);
 			}
 			duck.setCheckMatrixChanges(true);
-			slotChangedCraftingGrid(player.world, player, input, craftResult);
+			slotChangedCraftingGrid(player.level, player, input, craftResult);
 		}
 		duck.setCheckMatrixChanges(true);
-		return craftResult.getLastRecipe() == null ? ItemStack.EMPTY : outputCopy;
+		return craftResult.getRecipeUsed() == null ? ItemStack.EMPTY : outputCopy;
 	}
 
-	public static Recipe<CraftingInventory> findRecipe(CraftingInventory inv, World world) {
-		return world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, inv, world).orElse(null);
+	public static Recipe<CraftingContainer> findRecipe(CraftingContainer inv, Level level) {
+		return level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, inv, level).orElse(null);
 	}
 }
