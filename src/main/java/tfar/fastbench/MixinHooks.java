@@ -73,7 +73,7 @@ public class MixinHooks {
 
 				resultSlot.onTake(player, recipeOutput);
 
-				player.drop(resultSlot.getItem(), false);
+				//player.drop(resultSlot.getItem(), false);
 			}
 			duck.setCheckMatrixChanges(true);
 			slotChangedCraftingGrid(player.level, player, input, craftResult);

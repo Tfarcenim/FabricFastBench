@@ -40,11 +40,11 @@ public class CraftingResultSlotMixin extends Slot {
 		//do nothing
 	}
 
-	//inventory is actually the crafting result inventory so it's a safe cast
+	//this.container is actually the crafting result inventory so it's a safe cast
 	//using an inject instead of a redirect as a workaround for tech reborn's BS
 	@Inject(method = "onTake", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/crafting/RecipeManager;getRemainingItemsFor(Lnet/minecraft/world/item/crafting/RecipeType;Lnet/minecraft/world/Container;Lnet/minecraft/world/level/Level;)Lnet/minecraft/core/NonNullList;"))
 	private void cache(Player player, ItemStack stack, CallbackInfo ci) {
-		Recipe<CraftingContainer> lastRecipe = (Recipe<CraftingContainer>) ((ResultContainer)this.craftSlots).getLastRecipe();
+		Recipe<CraftingContainer> lastRecipe = (Recipe<CraftingContainer>) ((ResultContainer)this.container).getRecipeUsed();
 		MixinHooks.lastRecipe = lastRecipe != null && lastRecipe.matches(craftSlots, player.level) ? lastRecipe : null;
 		MixinHooks.hascachedrecipe = true;
 	}
