@@ -24,13 +24,13 @@ public class CraftingResultSlotMixin extends Slot {
 		super(inventory, index, x, y);
 	}
 
-	@Redirect(method = "takeStack",at = @At(value = "INVOKE",target = "Lnet/minecraft/screen/slot/Slot;takeStack(I)Lnet/minecraft/item/ItemStack;"))
+	@Redirect(method = "remove",at = @At(value = "INVOKE",target = "Lnet/minecraft/world/inventory/Slot;remove(I)Lnet/minecraft/world/item/ItemStack;"))
 	private ItemStack copy(Slot slot, int amount) {
 		return slot.getItem().copy();
 	}
 
 	@Override
-	public void setStack(ItemStack stack) {
+	public void set(ItemStack stack) {
 		//do nothing
 	}
 
