@@ -23,7 +23,7 @@ public class MixinHooks {
 
 	public static Recipe<CraftingContainer> lastRecipe;
 
-	public static void slotChangedCraftingGrid(Level level, Player player, CraftingContainer inv, ResultContainer result) {
+	public static void slotChangedCraftingGrid(Level level, Player player, AbstractContainerMenu menu, CraftingContainer inv, ResultContainer result) {
 		if (!level.isClientSide) {
 
 			ItemStack itemstack = ItemStack.EMPTY;
@@ -36,9 +36,14 @@ public class MixinHooks {
 			}
 
 			result.setItem(0, itemstack);
-			FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-			buf.writeResourceLocation(recipe != null ? recipe.getId() : new ResourceLocation("null", "null"));
-			ServerPlayNetworking.send((ServerPlayer) player, FastBench.recipe_sync, buf);
+
+			// Prevents sending stuff that cannot be synced directly.
+			// The `canSend` check prevents the client from getting packet spammed.
+			if (menu.containerId >= 0 && ServerPlayNetworking.canSend((ServerPlayer) player, FastBench.recipe_sync)) {
+				FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+				buf.writeResourceLocation(recipe != null ? recipe.getId() : new ResourceLocation("null", "null"));
+				ServerPlayNetworking.send((ServerPlayer) player, FastBench.recipe_sync, buf);
+			}
 
 			result.setRecipeUsed(recipe);
 		}
@@ -76,7 +81,7 @@ public class MixinHooks {
 				//player.drop(resultSlot.getItem(), false);
 			}
 			duck.setCheckMatrixChanges(true);
-			slotChangedCraftingGrid(player.level, player, input, craftResult);
+			slotChangedCraftingGrid(player.level, player, container, input, craftResult);
 		}
 		duck.setCheckMatrixChanges(true);
 		return craftResult.getRecipeUsed() == null ? ItemStack.EMPTY : outputCopy;

@@ -25,7 +25,7 @@ abstract class PlayerContainerMixin extends AbstractContainerMenu {
 
 	@Inject(method = "slotsChanged", at = @At("HEAD"), cancellable = true)
 	private void updateResult(Container inventory, CallbackInfo ci) {
-		MixinHooks.slotChangedCraftingGrid(owner.level,owner, craftSlots, resultSlots);
+		MixinHooks.slotChangedCraftingGrid(owner.level, owner, this, craftSlots, resultSlots);
 	}
 
 	@Inject(method = "quickMoveStack",at = @At("HEAD"),cancellable = true)
