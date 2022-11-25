@@ -1,8 +1,7 @@
 package tfar.fastbench;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
-
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.*;
@@ -18,17 +17,17 @@ public class FastBenchClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 
-		ClientSidePacketRegistry.INSTANCE.register(recipe_sync,
-						(packetContext, attachedData) -> {
-							ResourceLocation location = attachedData.readResourceLocation();
-							packetContext.getTaskQueue().execute(() -> {
-								AbstractContainerMenu container = packetContext.getPlayer().containerMenu;
-								if (container instanceof InventoryMenu || container instanceof CraftingMenu) {
-									Recipe<?> r = Minecraft.getInstance().level.getRecipeManager().byKey(location).orElse(null);
-									updateLastRecipe(packetContext.getPlayer().containerMenu, (Recipe<CraftingContainer>) r);
-								}
-							});
-						});
+		ClientPlayNetworking.registerGlobalReceiver(recipe_sync,
+				(client, handler, attachedData, packetContext) -> {
+					ResourceLocation location = attachedData.readResourceLocation();
+					client.execute(() -> {
+						AbstractContainerMenu container = client.player.containerMenu;
+						if (container instanceof InventoryMenu || container instanceof CraftingMenu) {
+							Recipe<?> r = Minecraft.getInstance().level.getRecipeManager().byKey(location).orElse(null);
+							updateLastRecipe(client.player.containerMenu, (Recipe<CraftingContainer>) r);
+						}
+					});
+				});
 	}
 
 	public static void updateLastRecipe(AbstractContainerMenu container, Recipe<CraftingContainer> rec) {

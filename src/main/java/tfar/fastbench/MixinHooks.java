@@ -1,10 +1,10 @@
 package tfar.fastbench;
 
 import io.netty.buffer.Unpooled;
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
-
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -37,8 +37,8 @@ public class MixinHooks {
 
 			result.setItem(0, itemstack);
 			FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-			buf.writeResourceLocation(recipe != null ? recipe.getId(): new ResourceLocation("null","null"));
-			ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, FastBench.recipe_sync, buf);
+			buf.writeResourceLocation(recipe != null ? recipe.getId() : new ResourceLocation("null", "null"));
+			ServerPlayNetworking.send((ServerPlayer) player, FastBench.recipe_sync, buf);
 
 			result.setRecipeUsed(recipe);
 		}
