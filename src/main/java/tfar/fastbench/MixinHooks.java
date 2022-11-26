@@ -1,10 +1,5 @@
 package tfar.fastbench;
 
-import io.netty.buffer.Unpooled;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -23,7 +18,7 @@ public class MixinHooks {
 
 	public static Recipe<CraftingContainer> lastRecipe;
 
-	public static void slotChangedCraftingGrid(Level level, Player player, AbstractContainerMenu menu, CraftingContainer inv, ResultContainer result) {
+	public static void slotChangedCraftingGrid(Level level, CraftingContainer inv, ResultContainer result) {
 		if (!level.isClientSide) {
 
 			ItemStack itemstack = ItemStack.EMPTY;
@@ -36,14 +31,6 @@ public class MixinHooks {
 			}
 
 			result.setItem(0, itemstack);
-
-			// Prevents sending stuff that cannot be synced directly.
-			// The `canSend` check prevents the client from getting packet spammed.
-			if (menu.containerId >= 0 && ServerPlayNetworking.canSend((ServerPlayer) player, FastBench.recipe_sync)) {
-				FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-				buf.writeResourceLocation(recipe != null ? recipe.getId() : new ResourceLocation("null", "null"));
-				ServerPlayNetworking.send((ServerPlayer) player, FastBench.recipe_sync, buf);
-			}
 
 			result.setRecipeUsed(recipe);
 		}
@@ -81,7 +68,7 @@ public class MixinHooks {
 				//player.drop(resultSlot.getItem(), false);
 			}
 			duck.setCheckMatrixChanges(true);
-			slotChangedCraftingGrid(player.level, player, container, input, craftResult);
+			slotChangedCraftingGrid(player.level, input, craftResult);
 		}
 		duck.setCheckMatrixChanges(true);
 		return craftResult.getRecipeUsed() == null ? ItemStack.EMPTY : outputCopy;

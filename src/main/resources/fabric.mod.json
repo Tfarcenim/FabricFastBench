@@ -20,7 +20,6 @@
     "main": [
     ],
     "client": [
-      "tfar.fastbench.FastBenchClient"
     ]
   },
   "mixins": [
@@ -28,8 +27,7 @@
   ],
 
   "depends": {
-    "fabricloader": ">=0.7.2",
-    "fabric": "*"
+    "fabricloader": ">=0.7.2"
   },
   "suggests": {
     "flamingo": "*"

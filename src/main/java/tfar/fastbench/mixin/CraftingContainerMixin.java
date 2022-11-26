@@ -29,7 +29,7 @@ abstract class CraftingContainerMixin<C extends Container> extends RecipeBookMen
 
 	@Overwrite
 	public void slotsChanged(Container inventory) {
-		MixinHooks.slotChangedCraftingGrid(this.player.level, player, this, craftSlots, resultSlots);
+		MixinHooks.slotChangedCraftingGrid(this.player.level, craftSlots, resultSlots);
 	}
 
 	@Inject(method = "quickMoveStack",at = @At("HEAD"),cancellable = true)

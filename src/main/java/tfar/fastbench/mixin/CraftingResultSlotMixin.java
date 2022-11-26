@@ -18,19 +18,28 @@ import tfar.fastbench.MixinHooks;
 @Mixin(ResultSlot.class)
 public class CraftingResultSlotMixin extends Slot {
 
-	@Shadow @Final private CraftingContainer craftSlots;
+	@Shadow
+	@Final
+	private CraftingContainer craftSlots;
+
+	@Shadow
+	@Final
+	private Player player;
 
 	public CraftingResultSlotMixin(Container inventory, int index, int x, int y) {
 		super(inventory, index, x, y);
 	}
 
-	@Redirect(method = "remove",at = @At(value = "INVOKE",target = "Lnet/minecraft/world/inventory/Slot;remove(I)Lnet/minecraft/world/item/ItemStack;"))
+	@Redirect(method = "remove", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;remove(I)Lnet/minecraft/world/item/ItemStack;"))
 	private ItemStack copy(Slot slot, int amount) {
 		return slot.getItem().copy();
 	}
 
 	@Override
 	public void set(ItemStack stack) {
+		if (player.level.isClientSide) {
+			super.set(stack);
+		}
 		//do nothing
 	}
 
