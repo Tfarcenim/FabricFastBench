@@ -24,9 +24,14 @@ public class CraftingContainerMixin implements CraftingInventoryDuck {
 		this.checkMatrixChanges = checkMatrixChanges;
 	}
 
+	@Override
+	public boolean getCheckMatrixChanges() {
+		return this.checkMatrixChanges;
+	}
+
 	@Redirect(method = {"removeItem",
-					"setItem"},at = @At(value = "INVOKE",target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;slotsChanged(Lnet/minecraft/world/Container;)V"))
+			"setItem"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;slotsChanged(Lnet/minecraft/world/Container;)V"))
 	private void checkForChanges(AbstractContainerMenu screenHandler, Container inventory) {
-		if (checkMatrixChanges) menu.slotsChanged((Container)this);
+		if (checkMatrixChanges) menu.slotsChanged((Container) this);
 	}
 }
