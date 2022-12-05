@@ -18,18 +18,27 @@ import javax.annotation.Nullable;
 @Mixin(CraftingMenu.class)
 abstract class CraftingContainerMixin<C extends Container> extends RecipeBookMenu<C> {
 
-	@Shadow @Final private CraftingContainer craftSlots;
-	@Shadow @Final private ResultContainer resultSlots;
-	@Shadow @Final private Player player;
+	@Shadow
+	@Final
+	private CraftingContainer craftSlots;
+	@Shadow
+	@Final
+	private ResultContainer resultSlots;
+	@Shadow
+	@Final
+	private Player player;
+
+	@Shadow
+	@Final
+	private ContainerLevelAccess access;
 
 	protected CraftingContainerMixin(@Nullable MenuType<?> type, int syncId) {
 		super(type, syncId);
 	}
 
-
 	@Overwrite
 	public void slotsChanged(Container inventory) {
-		MixinHooks.slotChangedCraftingGrid(this.player.level, craftSlots, resultSlots);
+		access.execute((lvl, pos) -> MixinHooks.slotChangedCraftingGrid(this.player.level, craftSlots, resultSlots));
 	}
 
 	@Inject(method = "quickMoveStack",at = @At("HEAD"),cancellable = true)
