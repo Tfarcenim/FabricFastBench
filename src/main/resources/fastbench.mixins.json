@@ -7,7 +7,6 @@
     "CraftingContainerAccessor",
     "CraftingContainerMixin",
     "CraftingInventoryAccessor",
-    "CraftingInventoryMixin",
     "CraftingResultSlotMixin",
     "PlayerContainerAccessor",
     "PlayerContainerMixin",

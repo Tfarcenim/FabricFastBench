@@ -11,9 +11,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import tfar.fastbench.interfaces.CraftingInventoryDuck;
 
 @Mixin(CraftingContainer.class)
-public class CraftingInventoryMixin implements CraftingInventoryDuck {
+public class CraftingContainerMixin implements CraftingInventoryDuck {
 
-	@Shadow @Final private AbstractContainerMenu menu;
+	@Shadow
+	@Final
+	private AbstractContainerMenu menu;
 	public boolean checkMatrixChanges = true;
 
 
