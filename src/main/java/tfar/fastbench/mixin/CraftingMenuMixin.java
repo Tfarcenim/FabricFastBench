@@ -16,7 +16,7 @@ import tfar.fastbench.MixinHooks;
 import javax.annotation.Nullable;
 
 @Mixin(CraftingMenu.class)
-abstract class CraftingContainerMixin<C extends Container> extends RecipeBookMenu<C> {
+abstract class CraftingMenuMixin<C extends Container> extends RecipeBookMenu<C> {
 
 	@Shadow
 	@Final
@@ -32,7 +32,7 @@ abstract class CraftingContainerMixin<C extends Container> extends RecipeBookMen
 	@Final
 	private ContainerLevelAccess access;
 
-	protected CraftingContainerMixin(@Nullable MenuType<?> type, int syncId) {
+	protected CraftingMenuMixin(@Nullable MenuType<?> type, int syncId) {
 		super(type, syncId);
 	}
 
