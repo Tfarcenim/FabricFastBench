@@ -12,6 +12,8 @@ import net.minecraft.world.level.Level;
 import tfar.fastbench.interfaces.CraftingInventoryDuck;
 import tfar.fastbench.mixin.ContainerAccessor;
 
+import java.util.Collections;
+
 public class MixinHooks {
 
 	public static boolean hascachedrecipe = false;
@@ -38,19 +40,18 @@ public class MixinHooks {
 
 	public static ItemStack handleShiftCraft(Player player, AbstractContainerMenu container, Slot resultSlot, CraftingContainer input, ResultContainer craftResult, int outStart, int outEnd) {
 		ItemStack outputCopy = ItemStack.EMPTY;
-		CraftingInventoryDuck duck = (CraftingInventoryDuck)input;
+		CraftingInventoryDuck duck = (CraftingInventoryDuck) input;
 		duck.setCheckMatrixChanges(false);
-		if (resultSlot != null && resultSlot.hasItem()) {
+		Recipe<CraftingContainer> recipe = (Recipe<CraftingContainer>) craftResult.getRecipeUsed();
 
-			Recipe<CraftingContainer> recipe = (Recipe<CraftingContainer>) craftResult.getRecipeUsed();
-
-			while (recipe != null && recipe.matches(input, player.level)) {
+		if (recipe != null && resultSlot != null && resultSlot.hasItem()) {
+			while (recipe.matches(input, player.level)) {
 				ItemStack recipeOutput = resultSlot.getItem().copy();
 				outputCopy = recipeOutput.copy();
 
 				recipeOutput.getItem().onCraftedBy(recipeOutput, player.level, player);
 
-				if (!player.level.isClientSide && !((ContainerAccessor)container).insert(recipeOutput, outStart, outEnd,true)) {
+				if (!player.level.isClientSide && !((ContainerAccessor) container).insert(recipeOutput, outStart, outEnd, true)) {
 					duck.setCheckMatrixChanges(true);
 					return ItemStack.EMPTY;
 				}
@@ -69,9 +70,14 @@ public class MixinHooks {
 			}
 			duck.setCheckMatrixChanges(true);
 			slotChangedCraftingGrid(player.level, input, craftResult);
+
+			// Award the player the recipe for using it. Mimics vanilla behaviour.
+			if (!recipe.isSpecial()) {
+				player.awardRecipes(Collections.singleton(recipe));
+			}
 		}
 		duck.setCheckMatrixChanges(true);
-		return craftResult.getRecipeUsed() == null ? ItemStack.EMPTY : outputCopy;
+		return recipe == null ? ItemStack.EMPTY : outputCopy;
 	}
 
 	public static Recipe<CraftingContainer> findRecipe(CraftingContainer inv, Level level) {

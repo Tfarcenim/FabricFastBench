@@ -14,6 +14,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tfar.fastbench.MixinHooks;
+import tfar.fastbench.interfaces.CraftingInventoryDuck;
+
+import java.util.Collections;
 
 @Mixin(ResultSlot.class)
 public class CraftingResultSlotMixin extends Slot {
@@ -46,7 +49,13 @@ public class CraftingResultSlotMixin extends Slot {
 	@Redirect(method = "checkTakeAchievements",
 					at = @At(value = "INVOKE",target = "Lnet/minecraft/world/inventory/RecipeHolder;awardUsedRecipes(Lnet/minecraft/world/entity/player/Player;)V"))
 	public void no(RecipeHolder recipeUnlocker, Player player) {
-		//do nothing
+		if (((CraftingInventoryDuck) craftSlots).getCheckMatrixChanges() &&
+				this.container instanceof RecipeHolder recipeHolder) {
+			var recipeUsed = recipeHolder.getRecipeUsed();
+			if (recipeUsed != null && !recipeUsed.isSpecial()) {
+				player.awardRecipes(Collections.singleton(recipeUsed));
+			}
+		}
 	}
 
 	//this.container is actually the crafting result inventory so it's a safe cast
