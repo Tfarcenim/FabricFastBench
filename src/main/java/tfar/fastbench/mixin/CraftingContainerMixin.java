@@ -1,40 +1,37 @@
 package tfar.fastbench.mixin;
 
 import net.minecraft.world.Container;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.*;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.CraftingContainer;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import tfar.fastbench.MixinHooks;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import tfar.fastbench.interfaces.CraftingInventoryDuck;
 
-import javax.annotation.Nullable;
+@Mixin(CraftingContainer.class)
+public class CraftingContainerMixin implements CraftingInventoryDuck {
 
-@Mixin(CraftingMenu.class)
-abstract class CraftingContainerMixin<C extends Container> extends RecipeBookMenu<C> {
+	@Shadow
+	@Final
+	private AbstractContainerMenu menu;
+	public boolean checkMatrixChanges = true;
 
-	@Shadow @Final private CraftingContainer craftSlots;
-	@Shadow @Final private ResultContainer resultSlots;
-	@Shadow @Final private Player player;
 
-	protected CraftingContainerMixin(@Nullable MenuType<?> type, int syncId) {
-		super(type, syncId);
+	@Override
+	public void setCheckMatrixChanges(boolean checkMatrixChanges) {
+		this.checkMatrixChanges = checkMatrixChanges;
 	}
 
-
-	@Overwrite
-	public void slotsChanged(Container inventory) {
-		MixinHooks.slotChangedCraftingGrid(this.player.level, player, craftSlots, resultSlots);
+	@Override
+	public boolean getCheckMatrixChanges() {
+		return this.checkMatrixChanges;
 	}
 
-	@Inject(method = "quickMoveStack",at = @At("HEAD"),cancellable = true)
-	private void handleShiftCraft(Player player, int index, CallbackInfoReturnable<ItemStack> cir) {
-		if (index != 0) return;
-		cir.setReturnValue(MixinHooks.handleShiftCraft(player, this, this.slots.get(index), this.craftSlots, this.resultSlots, 10, 46));
+	@Redirect(method = {"removeItem",
+			"setItem"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;slotsChanged(Lnet/minecraft/world/Container;)V"))
+	private void checkForChanges(AbstractContainerMenu screenHandler, Container inventory) {
+		if (checkMatrixChanges) menu.slotsChanged((Container) this);
 	}
 }
